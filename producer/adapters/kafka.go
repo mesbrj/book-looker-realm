@@ -57,7 +57,7 @@ func (p *KafkaProducerImpl) Close() error {
 func GetKafkaBrokers() []string {
 	brokers := os.Getenv("KAFKA_BROKERS")
 	if brokers == "" {
-		return []string{"localhost:9092"}
+		return []string{"localhost:9094"}
 	}
 	return []string{brokers}
 }

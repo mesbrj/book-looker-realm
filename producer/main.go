@@ -34,8 +34,9 @@ func main() {
 	}
 
 	// Create Kafka producer
-	brokers := adapters.GetKafkaBrokers()
-	producer := adapters.NewKafkaProducer(brokers, kafkaTopic)
+	producer := adapters.NewKafkaProducer(
+		adapters.GetKafkaBrokers(),
+		kafkaTopic)
 	defer producer.Close()
 
 	// Send message to Kafka
