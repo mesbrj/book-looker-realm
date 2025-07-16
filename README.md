@@ -7,6 +7,11 @@ This project implements a text and metadata (file/contents) extraction pipeline 
 - **Kafka**: Message broker for job messages queue.
 - **Tika**: Text extraction service
 
+## Roadmap
+- [ ] Release all Tika capabilities (Go Subscriber app)
+- [ ] Use MinIO as centralized storage for files and Tika outputs.
+- [ ] MinIO Bucket notification using the Go Publisher app as target (webhook).
+
 ### Prerequisites
 - Podman / Docker and Docker / Podman Compose
 *Tested with **Podman Compose***
