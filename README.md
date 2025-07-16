@@ -1,44 +1,20 @@
-# PDF Text Extraction Pipeline
+# Text and Metadata (file archive and contents) Detection and Extraction Pipeline
 
-This project implements a PDF text extraction pipeline using Apache Kafka and Apache Tika.
+This project implements a text and metadata (file/contents) extraction pipeline using Apache Kafka and Apache Tika.
 
-## Architecture
-
-- **Producer**: Receives PDF file paths via CLI and sends jobs to Kafka topic
-- **Consumer**: Processes Kafka messages and extracts text (from PDF) using Apache Tika
-- **Kafka**: Message broker for job queue
+- **Producer**: Receives file paths via CLI and sends job messages to Kafka topic.
+- **Consumer**: Processes Kafka messages and extracts text (from files) using Apache Tika (only PDF file type at this moment).
+- **Kafka**: Message broker for job messages queue.
 - **Tika**: Text extraction service
 
-## Quick Start
-
 ### Prerequisites
-- Docker and Docker Compose
-- Go 1.21+ (for local development)
+- Podman / Docker and Docker / Podman Compose (tested with Podman Compose).
+- Go
 
 ### Running with Docker Compose
 
-1. **Start all services:**
 ```bash
 docker-compose up -d
-```
-
-2. **Wait for services to be ready** (approximately 30 seconds)
-
-3. **Create a test PDF** (put sample PDF files in `test_pdfs/` directory)
-
-4. **Send a PDF job:**
-```bash
-# Using the producer container
-docker-compose exec producer ./producer /app/pdfs/sample.pdf
-
-# Or if running locally
-cd producer
-go run main.go /path/to/your/file.pdf
-```
-
-5. **Check consumer logs:**
-```bash
-docker-compose logs -f consumer
 ```
 
 ### Local Development
@@ -62,51 +38,11 @@ go mod tidy
 go run main.go
 ```
 
-## Environment Variables
-
-### Producer
-- `KAFKA_BROKERS`: Kafka broker addresses (default: `localhost:9092`)
-
-### Consumer
-- `KAFKA_BROKERS`: Kafka broker addresses (default: `localhost:9092`)
-- `TIKA_URL`: Tika server URL (default: `http://localhost:9998`)
-
-## API Endpoints
-
-### Tika Server
-- **Extract Text**: `PUT http://localhost:9998/tika`
+## Tika Server
+- **Extract Text from file (Tika detects the file type)**: `POST http://localhost:9998/tika/form`
   - Content-Type: `multipart/form-data`
   - Accept: `text/plain`
 
-### Kafka Topics
-- **pdf-jobs**: Queue for PDF processing jobs
-
-## Message Format
-
-PDF jobs are sent as JSON messages:
-
-```json
-{
-  "id": "job_12345",
-  "file_path": "/app/pdfs/document.pdf",
-  "file_name": "document.pdf"
-}
-```
-
-## Troubleshooting
-
-### Useful Commands
-
-```bash
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f [service_name]
-
-# Clean restart
-docker-compose down && docker-compose up -d
-
-# Kafka topic inspection
-docker-compose exec kafka kafka-topics --bootstrap-server localhost:9092 --list
-```
+- **Get Metadata (file and contents) from file**: `POST http://localhost:9998/meta/form`
+  - Content-Type: `multipart/form-data`
+  - Accept: `application/json`, `application/rdf+xml`, `text/csv`, `text/plain`
