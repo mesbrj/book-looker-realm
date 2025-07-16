@@ -2,13 +2,14 @@
 
 This project implements a text and metadata (file/contents) extraction pipeline using Apache Kafka and Apache Tika.
 
-- **Producer**: Receives file paths via CLI and sends job messages to Kafka topic.
-- **Consumer**: Processes Kafka messages and extracts text (from files) using Apache Tika (only PDF file type at this moment).
+- **Publisher**: Receives file paths via CLI and sends job messages to Kafka topic.
+- **Subscriber**: Processes Kafka messages and extracts text (from files) using Apache Tika (only PDF file type at this moment).
 - **Kafka**: Message broker for job messages queue.
 - **Tika**: Text extraction service
 
 ### Prerequisites
-- Podman / Docker and Docker / Podman Compose (tested with Podman Compose).
+- Podman / Docker and Docker / Podman Compose
+*Tested with **Podman Compose***
 - Go
 
 ### Running with Docker Compose
