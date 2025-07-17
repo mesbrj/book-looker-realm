@@ -34,6 +34,8 @@ docker-compose up -d consumer
 **Send PDF files for processing:**
 ```bash
 docker-compose run --rm producer ./producer /app/pdfs/osdc_Lua_20230211.pdf
+# Send multiple jobs:
+for i in {1..5}; do echo "Sending job $i"; docker-compose run --rm producer ./producer /app/pdfs/osdc_Lua_20230211.pdf; done
 ```
 
 **View consumer logs:**

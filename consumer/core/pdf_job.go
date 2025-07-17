@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 
 	"consumer/adapters"
 )
@@ -26,29 +27,33 @@ func FromJSON(data []byte) (*PDFJob, error) {
 // MessageHandler handles incoming PDF job messages
 type MessageHandler struct {
 	tikaClient *adapters.TikaClient
+	semaphore  chan struct{}  // Limits concurrent Tika requests
+	wg         sync.WaitGroup // Tracks ongoing extractions
 }
 
 // NewMessageHandler creates a new message handler
 func NewMessageHandler(tikaClient *adapters.TikaClient) *MessageHandler {
 	return &MessageHandler{
 		tikaClient: tikaClient,
+		semaphore:  make(chan struct{}, 3), // Allow max 3 concurrent Tika requests
 	}
 }
 
-// HandlePDFJob processes a PDF job message
-func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
-	// Parse the job from JSON
-	job, err := FromJSON(messageData)
-	if err != nil {
-		return err
-	}
+// extractTextAsync performs text extraction asynchronously using Tika
+func (h *MessageHandler) extractTextAsync(job *PDFJob) {
+	defer h.wg.Done()
 
-	log.Printf("Processing PDF job: %s (file: %s)", job.ID, job.FileName)
+	// Acquire semaphore to limit concurrent requests
+	h.semaphore <- struct{}{}
+	defer func() { <-h.semaphore }()
+
+	log.Printf("Starting text extraction for job: %s (file: %s)", job.ID, job.FileName)
 
 	// Extract text using Tika
 	text, err := h.tikaClient.ExtractText(job.FilePath)
 	if err != nil {
-		return err
+		log.Printf("Failed to extract text from %s: %v", job.FileName, err)
+		return
 	}
 
 	log.Printf("Successfully extracted text from %s (%d characters)", job.FileName, len(text))
@@ -60,8 +65,31 @@ func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
 	} else {
 		log.Printf("Full text: %s", text)
 	}
+}
 
+// HandlePDFJob processes a PDF job message asynchronously
+func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
+	// Parse the job from JSON
+	job, err := FromJSON(messageData)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Processing PDF job: %s (file: %s)", job.ID, job.FileName)
+
+	// Start async text extraction
+	h.wg.Add(1)
+	go h.extractTextAsync(job)
+
+	// Return immediately - don't wait for text extraction to complete
+	log.Printf("PDF job %s queued for text extraction", job.ID)
 	return nil
+}
+
+// WaitForExtractions waits for all ongoing text extractions to complete
+func (h *MessageHandler) WaitForExtractions() {
+	h.wg.Wait()
+	log.Println("All text extractions completed")
 }
 
 // StartConsumer starts the Kafka consumer
@@ -73,6 +101,9 @@ func StartConsumer(ctx context.Context, brokers []string, topic string, groupID 
 	defer consumer.Close()
 
 	handler := NewMessageHandler(tikaClient)
+
+	// Ensure all extractions complete when shutting down
+	defer handler.WaitForExtractions()
 
 	log.Printf("Starting consumer for topic: %s", topic)
 	return consumer.ConsumeMessages(ctx, handler.HandlePDFJob)

@@ -17,23 +17,27 @@ type KafkaConsumer struct {
 	ready    chan bool
 }
 
+// Sarama Consumer Group Interface
 // Consumer represents a Sarama consumer group consumer
 type Consumer struct {
 	ready   chan bool
 	handler func([]byte) error
 }
 
+// Sarama Consumer Group Interface
 // Setup is run at the beginning of a new session, before ConsumeClaim
 func (consumer *Consumer) Setup(sarama.ConsumerGroupSession) error {
 	close(consumer.ready)
 	return nil
 }
 
+// Sarama Consumer Group Interface
 // Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
 func (consumer *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
+// Sarama Consumer Group Interface
 // ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
 func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for {
