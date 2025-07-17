@@ -4,71 +4,131 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
-	"github.com/segmentio/kafka-go"
+	"github.com/IBM/sarama"
 )
 
 // KafkaConsumer handles consuming messages from Kafka
 type KafkaConsumer struct {
-	reader *kafka.Reader
+	consumer sarama.ConsumerGroup
+	ready    chan bool
 }
 
-// NewKafkaConsumer creates a new Kafka consumer
-func NewKafkaConsumer(brokers []string, topic string, groupID string) *KafkaConsumer {
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  brokers,
-		Topic:    topic,
-		GroupID:  groupID,
-		MinBytes: 10e3, // 10KB
-		MaxBytes: 10e6, // 10MB
-	})
-
-	return &KafkaConsumer{
-		reader: reader,
-	}
+// Consumer represents a Sarama consumer group consumer
+type Consumer struct {
+	ready   chan bool
+	handler func([]byte) error
 }
 
-// ConsumeMessages consumes messages from Kafka
-func (c *KafkaConsumer) ConsumeMessages(ctx context.Context, handler func([]byte) error) error {
+// Setup is run at the beginning of a new session, before ConsumeClaim
+func (consumer *Consumer) Setup(sarama.ConsumerGroupSession) error {
+	close(consumer.ready)
+	return nil
+}
+
+// Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
+func (consumer *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+// ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
+func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for {
 		select {
-		case <-ctx.Done():
-			log.Println("Context cancelled, stopping message consumption")
-			return ctx.Err()
-		default:
-			// Set a timeout for ReadMessage to avoid blocking indefinitely
-			message, err := c.reader.ReadMessage(ctx)
-			if err != nil {
-				// Check if context was cancelled
-				if ctx.Err() != nil {
-					return ctx.Err()
-				}
-				log.Printf("Failed to read message: %v", err)
-				// Continue to try reading more messages
-				continue
+		case message := <-claim.Messages():
+			if message == nil {
+				return nil
 			}
 
-			log.Printf("Received message: key=%s", string(message.Key))
+			log.Printf("Received message: key=%s, partition=%d, offset=%d",
+				string(message.Key), message.Partition, message.Offset)
 
-			if err := handler(message.Value); err != nil {
+			if err := consumer.handler(message.Value); err != nil {
 				log.Printf("Failed to handle message: %v", err)
-				// In production, you might want to implement dead letter queue
-				continue
+			} else {
+				log.Printf("Successfully processed message at offset %d", message.Offset)
 			}
+
+			session.MarkMessage(message, "")
+
+		case <-session.Context().Done():
+			return nil
 		}
 	}
 }
 
+// NewKafkaConsumer creates a new Kafka consumer
+func NewKafkaConsumer(brokers []string, topic string, groupID string) (*KafkaConsumer, error) {
+	config := sarama.NewConfig()
+	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Version = sarama.V2_6_0_0
+
+	consumer, err := sarama.NewConsumerGroup(brokers, groupID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &KafkaConsumer{
+		consumer: consumer,
+		ready:    make(chan bool),
+	}, nil
+}
+
+// ConsumeMessages consumes messages from Kafka
+func (c *KafkaConsumer) ConsumeMessages(ctx context.Context, handler func([]byte) error) error {
+	log.Println("Starting message consumption...")
+
+	consumer := &Consumer{
+		ready:   c.ready,
+		handler: handler,
+	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			if err := c.consumer.Consume(ctx, []string{"pdf-jobs"}, consumer); err != nil {
+				log.Printf("Error from consumer: %v", err)
+				return
+			}
+			if ctx.Err() != nil {
+				return
+			}
+		}
+	}()
+
+	<-consumer.ready
+	log.Println("Sarama consumer up and running!...")
+
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-ctx.Done():
+		log.Println("Context cancelled")
+	case <-sigterm:
+		log.Println("Terminating: via signal")
+	}
+
+	wg.Wait()
+	return nil
+}
+
 // Close closes the consumer
 func (c *KafkaConsumer) Close() error {
-	return c.reader.Close()
+	return c.consumer.Close()
 }
 
 // GetKafkaBrokers returns Kafka brokers from environment or default
 func GetKafkaBrokers() []string {
 	brokers := os.Getenv("KAFKA_BROKERS")
 	if brokers == "" {
-		return []string{"localhost:9092"}
+		return []string{"localhost:9094"}
 	}
 	return []string{brokers}
 }

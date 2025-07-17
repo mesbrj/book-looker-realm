@@ -1,11 +1,10 @@
-# Build stage
 FROM golang:alpine3.22 AS builder
 
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY . .
+RUN go mod tidy
 RUN go mod download
 
-COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o consumer main.go
 
 FROM alpine:latest

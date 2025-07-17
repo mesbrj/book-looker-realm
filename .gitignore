@@ -1,3 +1,11 @@
+# Github copilot work files
+test_pdfs/sample.pdf
+debug-latest-kafka.sh
+diagnose-kafka.sh
+LATEST-KAFKA-COMPATIBILITY.md
+test-connectivity.sh
+test-fix.sh
+
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #

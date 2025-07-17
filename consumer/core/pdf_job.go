@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"consumer/adapters"
@@ -65,7 +66,10 @@ func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
 
 // StartConsumer starts the Kafka consumer
 func StartConsumer(ctx context.Context, brokers []string, topic string, groupID string, tikaClient *adapters.TikaClient) error {
-	consumer := adapters.NewKafkaConsumer(brokers, topic, groupID)
+	consumer, err := adapters.NewKafkaConsumer(brokers, topic, groupID)
+	if err != nil {
+		return fmt.Errorf("failed to create Kafka consumer: %v", err)
+	}
 	defer consumer.Close()
 
 	handler := NewMessageHandler(tikaClient)

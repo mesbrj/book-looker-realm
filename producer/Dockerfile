@@ -1,11 +1,10 @@
-# Build stage
 FROM golang:alpine3.22 AS builder
 
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY . .
+RUN go mod tidy
 RUN go mod download
 
-COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o producer main.go
 
 FROM alpine:latest
@@ -15,4 +14,4 @@ WORKDIR /root/
 
 COPY --from=builder /app/producer .
 
-CMD ["./producer", "/app/pdfs/osdc_Lua_20230211.pdf"]
+CMD ["./producer"]

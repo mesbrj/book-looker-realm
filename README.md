@@ -8,19 +8,37 @@ This project implements a text and metadata (file/contents) extraction pipeline 
 - **Tika**: Text extraction service
 
 ## Roadmap
-- [ ] Release all Tika capabilities (Go Subscriber app)
+- [ ] Release all Tika capabilities (Go Subscriber app). Including the translation capabilities, portuguese to spanish for example (Lingo24/Microsoft/Google).
 - [ ] Use MinIO as centralized storage for files and Tika outputs.
 - [ ] MinIO Bucket notification using the Go Publisher app as target (webhook).
 
 ### Prerequisites
 - Podman / Docker and Docker / Podman Compose
-*Tested with **Podman Compose***
+
+*Tested with **Podman and podman-compose***
 - Go
 
 ### Running with Docker Compose
 
+**Start the infrastructure and create Kafka topic:**
 ```bash
-docker-compose up -d
+docker-compose up -d kafka tika
+./kafka-topics.sh --create --topic pdf-jobs --bootstrap-server localhost:9094
+```
+
+**Start the consumer services:**
+```bash
+docker-compose up -d consumer
+```
+
+**Send PDF files for processing:**
+```bash
+docker-compose run --rm producer ./producer /app/pdfs/osdc_Lua_20230211.pdf
+```
+
+**View consumer logs:**
+```bash
+docker-compose logs consumer --tail 20
 ```
 
 ### Local Development
@@ -28,13 +46,14 @@ docker-compose up -d
 1. **Start infrastructure services only:**
 ```bash
 docker-compose up -d kafka tika
+./kafka-topics.sh --create --topic pdf-jobs --bootstrap-server localhost:9094
 ```
 
 2. **Run producer locally:**
 ```bash
 cd producer
 go mod tidy
-go run main.go /path/to/pdf/file.pdf
+go run main.go ../test_pdfs/osdc_Lua_20230211.pdf
 ```
 
 3. **Run consumer locally:**

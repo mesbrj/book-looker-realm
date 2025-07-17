@@ -1,4 +1,4 @@
-.PHONY: build start dev stop clean test help
+.PHONY: build start dev_infra consumer producer stop deps help
 
 # Build both producer and consumer
 build:
@@ -8,20 +8,23 @@ build:
 	cd consumer && go build -o consumer main.go
 	@echo "Build complete!"
 
-# Start all services with Docker Compose
+# Start all services with Docker Compose (Latest Kafka - takes longer)
 start:
-	@echo "Starting all services..."
+	@echo "Starting all services with latest Kafka..."
 	docker-compose up -d
 
-# Start only infrastructure for local development
+# Start only infrastructure for local development (Latest Kafka)
 dev_infra:
-	@echo "Starting infrastructure services..."
+	@echo "Starting infrastructure services (latest Kafka)..."
 	docker-compose up -d kafka tika
 
-# Start application services
-dev_apps:
-	@echo "Starting application services..."
-	docker-compose up -d producer consumer
+consumer:
+	@echo "Starting consumer service..."
+	docker-compose up -d consumer
+
+producer:
+	@echo "Starting producer service..."
+	docker-compose run --rm producer ./producer /app/pdfs/osdc_Pragmatic-systemd_2023.03.15.pdf
 
 # Stop all services
 stop:
@@ -36,9 +39,10 @@ deps:
 help:
 	@echo "Available commands:"
 	@echo "  build          - Build both producer and consumer"
-	@echo "  start          - Start all services with Docker Compose"
+	@echo "  start          - Start all services with Docker Compose (Latest Kafka)"
 	@echo "  dev_infra      - Start only infrastructure for local development"
-	@echo "  dev_apps       - Start application services"
+	@echo "  consumer       - Start consumer service"
+	@echo "  producer       - Start producer service with a sample PDF"	
 	@echo "  stop           - Stop all services"
 	@echo "  deps           - Download dependencies"
 	@echo "  help           - Show this help"
