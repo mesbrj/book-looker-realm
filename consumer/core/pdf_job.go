@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"consumer/adapters"
@@ -16,6 +19,7 @@ type PDFJob struct {
 	JobCreateEpoch int64    `json:"create_timestamp"`
 	FilePathList   []string `json:"file_path_list"`
 	FileNameList   []string `json:"file_name_list"`
+	OutputPath     string   `json:"output_path"`
 }
 
 // FromJSON creates a PDF job from JSON
@@ -41,7 +45,7 @@ func NewMessageHandler(tikaClient *adapters.TikaClient) *MessageHandler {
 }
 
 // extractTextAsync performs text extraction asynchronously using Tika for a single file
-func (h *MessageHandler) extractTextAsync(jobID, filePath, fileName string) {
+func (h *MessageHandler) extractTextAsync(jobID, filePath, fileName, outputPath string) {
 	defer h.wg.Done()
 
 	// Acquire semaphore to limit concurrent requests
@@ -59,13 +63,39 @@ func (h *MessageHandler) extractTextAsync(jobID, filePath, fileName string) {
 
 	log.Printf("Successfully extracted text from %s (%d characters)", fileName, len(text))
 
-	// In a real application, you would save this text to a database or file
-	// For now, we'll just log the first 200 characters
+	// Save text to file
+	if err := h.saveTextToFile(text, fileName, outputPath); err != nil {
+		log.Printf("Failed to save text file for %s: %v", fileName, err)
+		return
+	}
+
+	// Log preview for debugging
 	if len(text) > 200 {
 		log.Printf("Text preview: %s...", text[:200])
 	} else {
 		log.Printf("Full text: %s", text)
 	}
+}
+
+// saveTextToFile saves extracted text to a file with .txt extension
+func (h *MessageHandler) saveTextToFile(text, fileName, outputPath string) error {
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(outputPath, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory %s: %w", outputPath, err)
+	}
+
+	// Generate output filename: replace .pdf with .txt
+	baseFileName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	outputFileName := baseFileName + ".txt"
+	outputFilePath := filepath.Join(outputPath, outputFileName)
+
+	// Write text to file
+	if err := os.WriteFile(outputFilePath, []byte(text), 0644); err != nil {
+		return fmt.Errorf("failed to write text file %s: %w", outputFilePath, err)
+	}
+
+	log.Printf("Successfully saved text to file: %s", outputFilePath)
+	return nil
 }
 
 // HandlePDFJob processes a PDF job message with multiple files asynchronously
@@ -87,7 +117,7 @@ func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
 	for i, filePath := range job.FilePathList {
 		fileName := job.FileNameList[i]
 		h.wg.Add(1)
-		go h.extractTextAsync(job.ID, filePath, fileName)
+		go h.extractTextAsync(job.ID, filePath, fileName, job.OutputPath)
 	}
 
 	// Return immediately - don't wait for text extraction to complete

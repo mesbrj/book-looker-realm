@@ -33,9 +33,9 @@ docker-compose up -d consumer
 
 **Send PDF files for processing:**
 ```bash
-docker-compose run --rm producer ./producer /app/pdfs/osdc_Lua_20230211.pdf
+docker-compose run --rm producer ./producer "/app/samples/osdc_Lua_20230211.pdf, /app/samples/osdc_Pragmatic-systemd_2023.03.15.pdf, /app/samples/OSDC_webassembly_20230209.pdf" "/app/samples/tika_output_tests"
 # Send multiple jobs:
-for i in {1..5}; do echo "Sending job $i"; docker-compose run --rm producer ./producer /app/pdfs/osdc_Lua_20230211.pdf; done
+for i in {1..5}; do echo "Sending job $i"; docker-compose run --rm producer ./producer "/app/samples/osdc_Lua_20230211.pdf, /app/samples/osdc_Pragmatic-systemd_2023.03.15.pdf, /app/samples/OSDC_webassembly_20230209.pdf" "/app/samples/tika_output_tests"; done
 ```
 
 **View consumer logs:**
@@ -55,7 +55,7 @@ docker-compose up -d kafka tika
 ```bash
 cd producer
 go mod tidy
-go run main.go ../test_pdfs/osdc_Lua_20230211.pdf
+go run main.go "../samples/osdc_Lua_20230211.pdf" "../samples/tika_output_tests"
 ```
 
 3. **Run consumer locally:**

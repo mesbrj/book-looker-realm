@@ -17,6 +17,7 @@ type PDFJob struct {
 	JobCreateEpoch int64    `json:"create_timestamp"`
 	FilePathList   []string `json:"file_path_list"`
 	FileNameList   []string `json:"file_name_list"`
+	OutputPath     string   `json:"output_path"`
 }
 
 // PDFProcessor handles PDF file selection and validation
@@ -27,8 +28,8 @@ func NewPDFProcessor() *PDFProcessor {
 	return &PDFProcessor{}
 }
 
-// CreateJobFromPaths creates a PDF job from the given file paths (comma-separated string)
-func (p *PDFProcessor) CreateJobFromPaths(filePathsStr string) (*PDFJob, error) {
+// CreateJobFromPaths creates a PDF job from the given file paths and output path
+func (p *PDFProcessor) CreateJobFromPaths(filePathsStr, outputPath string) (*PDFJob, error) {
 	// Split comma-separated paths
 	paths := strings.Split(filePathsStr, ",")
 	var filePathList []string
@@ -70,6 +71,7 @@ func (p *PDFProcessor) CreateJobFromPaths(filePathsStr string) (*PDFJob, error) 
 		JobCreateEpoch: time.Now().Unix(),
 		FilePathList:   filePathList,
 		FileNameList:   fileNameList,
+		OutputPath:     outputPath,
 	}
 
 	return job, nil

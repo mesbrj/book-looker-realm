@@ -43,7 +43,7 @@ services:
       kafka:
         condition: service_healthy
     volumes:
-      - ./test_pdfs:/app/pdfs:ro
+      - ./samples:/app/samples
     environment:
       KAFKA_BROKERS: kafka:9092
     stdin_open: true
@@ -60,7 +60,7 @@ services:
       tika:
         condition: service_started
     volumes:
-      - ./test_pdfs:/app/pdfs:ro
+      - ./samples:/app/samples
     environment:
       KAFKA_BROKERS: kafka:9092
       TIKA_URL: http://tika:9998

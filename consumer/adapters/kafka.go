@@ -56,6 +56,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				log.Printf("Successfully processed message at offset %d", message.Offset)
 			}
 
+			// Mark the message as processed
 			session.MarkMessage(message, "")
 
 		case <-session.Context().Done():

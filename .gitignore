@@ -1,5 +1,11 @@
+# sample and test files
+samples/tika_output_tests/*.txt
+samples/tika_output_tests/*.csv
+samples/tika_output_tests/*.json
+samples/tika_output_tests/*.xml
+
 # Github copilot work files
-test_pdfs/sample.pdf
+samples/sample.pdf
 debug-latest-kafka.sh
 diagnose-kafka.sh
 LATEST-KAFKA-COMPATIBILITY.md
