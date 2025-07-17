@@ -10,11 +10,12 @@ import (
 	"consumer/adapters"
 )
 
-// PDFJob represents a job to process a PDF file
+// PDFJob represents a job to process multiple PDF files
 type PDFJob struct {
-	ID       string `json:"id"`
-	FilePath string `json:"file_path"`
-	FileName string `json:"file_name"`
+	ID             string   `json:"id"`
+	JobCreateEpoch int64    `json:"create_timestamp"`
+	FilePathList   []string `json:"file_path_list"`
+	FileNameList   []string `json:"file_name_list"`
 }
 
 // FromJSON creates a PDF job from JSON
@@ -39,24 +40,24 @@ func NewMessageHandler(tikaClient *adapters.TikaClient) *MessageHandler {
 	}
 }
 
-// extractTextAsync performs text extraction asynchronously using Tika
-func (h *MessageHandler) extractTextAsync(job *PDFJob) {
+// extractTextAsync performs text extraction asynchronously using Tika for a single file
+func (h *MessageHandler) extractTextAsync(jobID, filePath, fileName string) {
 	defer h.wg.Done()
 
 	// Acquire semaphore to limit concurrent requests
 	h.semaphore <- struct{}{}
 	defer func() { <-h.semaphore }()
 
-	log.Printf("Starting text extraction for job: %s (file: %s)", job.ID, job.FileName)
+	log.Printf("Starting text extraction for job: %s (file: %s)", jobID, fileName)
 
 	// Extract text using Tika
-	text, err := h.tikaClient.ExtractText(job.FilePath)
+	text, err := h.tikaClient.ExtractText(filePath)
 	if err != nil {
-		log.Printf("Failed to extract text from %s: %v", job.FileName, err)
+		log.Printf("Failed to extract text from %s: %v", fileName, err)
 		return
 	}
 
-	log.Printf("Successfully extracted text from %s (%d characters)", job.FileName, len(text))
+	log.Printf("Successfully extracted text from %s (%d characters)", fileName, len(text))
 
 	// In a real application, you would save this text to a database or file
 	// For now, we'll just log the first 200 characters
@@ -67,7 +68,7 @@ func (h *MessageHandler) extractTextAsync(job *PDFJob) {
 	}
 }
 
-// HandlePDFJob processes a PDF job message asynchronously
+// HandlePDFJob processes a PDF job message with multiple files asynchronously
 func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
 	// Parse the job from JSON
 	job, err := FromJSON(messageData)
@@ -75,14 +76,22 @@ func (h *MessageHandler) HandlePDFJob(messageData []byte) error {
 		return err
 	}
 
-	log.Printf("Processing PDF job: %s (file: %s)", job.ID, job.FileName)
+	// Validate that file lists have the same length
+	if len(job.FilePathList) != len(job.FileNameList) {
+		return fmt.Errorf("file path list and file name list have different lengths for job %s", job.ID)
+	}
 
-	// Start async text extraction
-	h.wg.Add(1)
-	go h.extractTextAsync(job)
+	log.Printf("Processing PDF job: %s with %d files", job.ID, len(job.FilePathList))
+
+	// Start async text extraction for each file
+	for i, filePath := range job.FilePathList {
+		fileName := job.FileNameList[i]
+		h.wg.Add(1)
+		go h.extractTextAsync(job.ID, filePath, fileName)
+	}
 
 	// Return immediately - don't wait for text extraction to complete
-	log.Printf("PDF job %s queued for text extraction", job.ID)
+	log.Printf("PDF job %s queued for text extraction (%d files)", job.ID, len(job.FilePathList))
 	return nil
 }
 

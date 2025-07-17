@@ -15,14 +15,14 @@ const (
 func main() {
 	// Parse CLI arguments
 	cli := adapters.NewCLIAdapter()
-	filePath, err := cli.ParseArgs()
+	filePathsStr, err := cli.ParseArgs()
 	if err != nil {
 		log.Fatalf("CLI error: %v", err)
 	}
 
 	// Create PDF processor
 	processor := core.NewPDFProcessor()
-	job, err := processor.CreateJob(filePath)
+	job, err := processor.CreateJobFromPaths(filePathsStr)
 	if err != nil {
 		log.Fatalf("Failed to create PDF job: %v", err)
 	}
@@ -46,5 +46,5 @@ func main() {
 		log.Fatalf("Failed to send message: %v", err)
 	}
 
-	log.Printf("Successfully sent PDF job: %s (file: %s)", job.ID, job.FileName)
+	log.Printf("Successfully sent PDF job: %s (%d files: %v)", job.ID, len(job.FileNameList), job.FileNameList)
 }
