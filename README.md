@@ -73,3 +73,5 @@ go run main.go
 - **Get Metadata (file and contents) from file**: `POST http://localhost:9998/meta/form`
   - Content-Type: `multipart/form-data`
   - Accept: `application/json`, `application/rdf+xml`, `text/csv`, `text/plain`
+
+*Sample PDF files licensed under*: [**Creative Commons Attribution Share-alike 4.0**](https://creativecommons.org/licenses/by-sa/4.0/deed.en)
