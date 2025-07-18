@@ -66,6 +66,8 @@ go run main.go
 ```
 
 ## Tika Server
+[**Documentation**](https://cwiki.apache.org/confluence/display/TIKA/TikaServer)
+
 - **Extract Text from file (Tika detects the file type, including images using OCR)**: `POST http://localhost:9998/tika/form`
   - Content-Type: `multipart/form-data`
   - Accept: `text/plain`
