@@ -38,6 +38,7 @@
 
 **Golang Subscriber worker:**
 - Service authentication with Kerberos service principal.
+- Kafka client: Subscriber. Always getting the Broker connection information from the Jakarta EE REST Web Service.
 - Kafka client: Subscriber. Always connect and authenticate to the Broker using his service principal.
 - MinIO S3 client.
 - Tika (sidecar) Server client: Extract text and metadata from files and handle all other Tika features.
@@ -72,57 +73,11 @@
 - **Single Sign-On** - Principals authenticate once and gain access to multiple services without re-entering credentials.
 
 ### Prerequisites
-- Podman / Docker and Docker / Podman Compose
-
-*Tested with **Podman and podman-compose***
-- Go
-
-### Running with Docker Compose
-
-**Start the infrastructure and create Kafka topic:**
-```bash
-docker-compose up -d kafka tika
-./kafka-topics.sh --create --topic pdf-jobs --bootstrap-server localhost:9094
-```
-
-**Start the consumer services:**
-```bash
-docker-compose up -d consumer
-```
-
-**Send PDF files for processing:**
-```bash
-docker-compose run --rm producer ./producer "/app/samples/osdc_Lua_20230211.pdf, /app/samples/osdc_Pragmatic-systemd_2023.03.15.pdf, /app/samples/OSDC_webassembly_20230209.pdf" "/app/samples/tika_output_tests"
-# Send multiple jobs:
-for i in {1..5}; do echo "Sending job $i"; docker-compose run --rm producer ./producer "/app/samples/osdc_Lua_20230211.pdf, /app/samples/osdc_Pragmatic-systemd_2023.03.15.pdf, /app/samples/OSDC_webassembly_20230209.pdf" "/app/samples/tika_output_tests"; done
-```
-
-**View consumer logs:**
-```bash
-docker-compose logs consumer --tail 20
-```
-
-### Local Development
-
-1. **Start infrastructure services only:**
-```bash
-docker-compose up -d kafka tika
-./kafka-topics.sh --create --topic pdf-jobs --bootstrap-server localhost:9094
-```
-
-2. **Run producer locally:**
-```bash
-cd producer
-go mod tidy
-go run main.go "../samples/osdc_Lua_20230211.pdf" "../samples/tika_output_tests"
-```
-
-3. **Run consumer locally:**
-```bash
-cd consumer
-go mod tidy
-go run main.go
-```
+- Podman.
+[Podman-kube](https://docs.podman.io/en/v5.0.3/markdown/podman-kube.1.html) is a prerequisite for create PODs based on Kubernetes.
+This project uses sidecar containers and with Podman-kube the development environment is more similar to production.
+- Go, Python and Java
+- ...
 
 ## Tika Server
 [**Documentation**](https://cwiki.apache.org/confluence/display/TIKA/TikaServer)
