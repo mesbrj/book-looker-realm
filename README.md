@@ -7,9 +7,10 @@
 ### Overview
 
 **Kafka:**
-- V4 Kafka Broker with SASL/GSSAPI authentication.
+- Kafka V3.3.8 Broker with SASL/GSSAPI authentication. (v4.0.0 support not released yet in [Spring for Apache Kafka](https://spring.io/projects/spring-kafka#support))
 
-**Java (Wildfly) Jakarta EE REST Web Service:**
+**Java Spring for Apache Kafka REST Web Service:**
+- Spring Data MongoDB for data persistence, management, and search.
 - User authentication with Kerberos with SSO (Single Sign-On) support.
 - Oauth2 authorization support.
 - Docs/Archive uploader management service (abstracting all S3 details).
@@ -18,27 +19,23 @@
 - Search capabilities (catalog and metadatas).
 - Translations (languages) service.
 - Information templates management.
-- MongoDB for data persistence, management, and search.
-- Kafka client: Publisher. Always using his service principal for authentication to Broker (independently of logged user on the service).
+- Kafka client: Publisher. Use the user principal of the current logged user for authentication to Broker.
 
 
 **Python Qt Quick (QML/JavaScript) client GUI:**
 - User authentication with Kerberos with SSO (Single Sign-On) support.
-- Client (GUI FrontEnd) for the Jakarta EE REST Web Service.
-- Kafka client: Publisher. Always getting the Broker connection information from the Jakarta EE REST Web Service.
-- Kafka client: Publisher. Always connect and authenticate to the Broker using the user principal (from current successfully logged user).
+- Client (GUI FrontEnd) for the Spring for Apache Kafka REST Web Service.
 - Qt Quick app in remote locations: Alternative ways to get Kerberos tickets, via JWT or OTP mechanisms.
 
 **Golang Direct CLI:**
 - User authentication with Kerberos with SSO (Single Sign-On) support.
-- CLI without support to Jakarta EE REST Web Service.
+- CLI without support to Spring for Apache Kafka REST Web Service.
 - CLI with direct access to S3 buckets.
 - Kafka client: Publisher. Always connect and authenticate to the Broker using the user principal (from current successfully logged user).
 - Can be used in files batch process, automate tasks, or other integrations.
 
 **Golang Subscriber worker:**
 - Service authentication with Kerberos service principal.
-- Kafka client: Subscriber. Always getting the Broker connection information from the Jakarta EE REST Web Service.
 - Kafka client: Subscriber. Always connect and authenticate to the Broker using his service principal.
 - MinIO S3 client.
 - Tika (sidecar) Server client: Extract text and metadata from files and handle all other Tika features.
@@ -49,6 +46,10 @@
 - KDC with: in-memory, Mavibot(MVCC BTree) or JSON backends to store data (principals and keys).
 - Preauth mechanism using JWT or OTP mechanism to request TGT and Service-Tickets.
 - SASL support and more.
+
+**kerby-instruments**: https://github.com/mesb/kerby-instruments
+- Java spring boot REST API for Apache Kerby.
+- Remote Kerberos administration, instrumentation, metrics and telemetry.
 
 **Ory ecosystem:**
 >
