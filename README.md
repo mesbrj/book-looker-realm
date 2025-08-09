@@ -22,16 +22,13 @@
 - Kafka client: Publisher. Use the user principal of the current logged user for authentication to Broker.
 
 
-**Python Qt Quick (QML/JavaScript) client GUI:**
+**[JavaFX](https://openjfx.io/)** Mobile and Desktop Client UI:
 - User authentication with Kerberos with SSO (Single Sign-On) support.
 - Client (GUI FrontEnd) for the Spring for Apache Kafka REST Web Service.
-- Qt Quick app in remote locations: Alternative ways to get Kerberos tickets, via JWT or OTP mechanisms.
+- JavaFX app in internet only (80/443) locations: Alternative ways to get Kerberos tickets via JWT or OTP mechanisms.
 
-**Golang Direct CLI:**
+**Golang Terminal User-Interface:**
 - User authentication with Kerberos with SSO (Single Sign-On) support.
-- CLI without support to Spring for Apache Kafka REST Web Service.
-- CLI with direct access to S3 buckets.
-- Kafka client: Publisher. Always connect and authenticate to the Broker using the user principal (from current successfully logged user).
 - Can be used in files batch process, automate tasks, or other integrations.
 
 **Golang Subscriber worker:**
@@ -55,13 +52,13 @@
 >
 **Ory Hydra**: Golang OAuth2 and OpenID Connect provider for token-based authentication.
 - Alternative ways to get Kerberos tickets (via JWT or OTP).
-- OAuth2/OpenID Flows (MinIO and Jakarta EE REST Web Service).
+- OAuth2/OpenID Flows (MinIO and Spring for Apache Kafka REST Web Service).
 >
 **Ory Kratos**: Golang Identity and User Management system with self-service flows.
 - Principals and keys (users and services) management in the Kerby realm.
 >
 **Ory Keto**: Golang Fine-grained authorization server with relationship-based access control.
-- Fine-grained authorization for the Jakarta EE REST Web Service.
+- Fine-grained authorization for the Spring for Apache Kafka REST Web Service.
 - Fine-grained authorization for the S3 buckets (MinIO).
 
 ### Positive points about Kerberos
