@@ -20,7 +20,7 @@
 - Translations (languages) service.
 - Information templates management.
 - Kafka client: Publisher. Use the user principal of the current logged user for authentication to Broker.
-- Fundamental key operations in kerberos authentication delegation. [Apache Kerby](https://directory.apache.org/kerby/) doesn't have features of [Kerberos Constrained Delegation, like Active Directory has](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview). We need use the alternative mechanisms of kerby (to get tickets) to do the delegation properly.
+- Fundamental key operations in kerberos authentication delegation. [Apache Kerby](https://directory.apache.org/kerby/) doesn't have features of [Kerberos Constrained Delegation, like Active Directory has](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview). We need use the alternative mechanisms of kerby and his API (kerberos implementation) to do the delegation properly.
 
 **[JavaFX](https://openjfx.io/)** Mobile and Desktop Client UI:
 - User authentication with Kerberos with SSO (Single Sign-On) support.
