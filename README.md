@@ -70,7 +70,7 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 - **Cross-Platform Support** - Widely supported across various operating systems and applications.
 - **Strong Security** - Encrypted tickets and time-limited credentials.
 - **Single Sign-On** - Principals authenticate once and gain access to multiple services without re-entering credentials.
-- **Delegation Support** - Kerberos allows use cases for delegation of credentials, enabling services to act (getting service-tickets) on behalf of users.
+- **Delegation Support** - Kerberos allows use cases for delegation of credentials, enabling services to act (getting service-tickets) on behalf of users. Improving tracking and auditing of user actions.
 
 ### Prerequisites
 - Podman.
