@@ -1,5 +1,5 @@
 # Book looker Realm
-Text and Metadata (file contents and archive), Detection and Extraction Pipeline with powerful web REST API catalog services in an own Kerberos realm.
+Text and metadata (file contents and archive), detection and extraction pipeline, with catalog services, Go terminal-UI and JavaFX UI (mobile and desktop) in an own Kerberos realm.
 
 
 
@@ -70,6 +70,7 @@ Text and Metadata (file contents and archive), Detection and Extraction Pipeline
 - **Cross-Platform Support** - Widely supported across various operating systems and applications.
 - **Strong Security** - Encrypted tickets and time-limited credentials.
 - **Single Sign-On** - Principals authenticate once and gain access to multiple services without re-entering credentials.
+- **Delegation Support** - Kerberos allows use cases for delegation of credentials, enabling services to act (getting service-tickets) on behalf of users.
 
 ### Prerequisites
 - Podman.
