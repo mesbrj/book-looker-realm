@@ -1,4 +1,5 @@
-# Text and Metadata (file contents and archive), Detection and Extraction Pipeline with powerful web REST API catalog service in an own Kerberos realm.
+# Book looker Realm
+Text and Metadata (file contents and archive), Detection and Extraction Pipeline with powerful web REST API catalog services in an own Kerberos realm.
 
 
 
@@ -20,7 +21,6 @@
 - Translations (languages) service.
 - Information templates management.
 - Kafka client: Publisher. Use the user principal of the current logged user for authentication to Broker.
-- Fundamental key operations in kerberos authentication delegation. [Apache Kerby](https://directory.apache.org/kerby/) doesn't have features of [Kerberos Constrained Delegation, like Active Directory has](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview). We need use the alternative mechanisms of kerby and his API (kerberos implementation) to do the delegation properly.
 
 **[JavaFX](https://openjfx.io/)** Mobile and Desktop Client UI:
 - User authentication with Kerberos with SSO (Single Sign-On) support.
@@ -44,10 +44,10 @@
 - Preauth mechanism using JWT or OTP mechanism to request TGT and Service-Tickets.
 - SASL support and more.
 
-
 **kerby-instruments**: https://github.com/mesb/kerby-instruments
 - Java spring boot REST API for Apache Kerby.
-- Remote Kerberos administration, instrumentation, metrics and telemetry.
+- Remote Kerberos administration, management, instrumentation, metrics and telemetry.
+- Fundamental key operations in kerberos authentication delegation. [Apache Kerby](https://directory.apache.org/kerby/) doesn't have features of [Kerberos Constrained Delegation, like Active Directory has](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview). We need use the alternative mechanisms of kerby and his API to do the delegation properly.
 
 **Ory ecosystem:**
 >
