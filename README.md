@@ -15,6 +15,7 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 - User authentication with Kerberos with SSO (Single Sign-On) support.
 - Oauth2 authorization support.
 - Docs/Archive uploader management service (abstracting all S3 details).
+- Data encryption and decryption service with gnupg (key pairs isolated for each user principal).
 - Catalog management and update catalog tasks.
 - Metadata management, relationships, and analysis.
 - Search capabilities (catalog and metadatas).
@@ -41,18 +42,21 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 - Java Lib with the implementation of the Kerberos protocol and a complete KDC(AS/TGS) server.
 - Only Kerberos, not other protocol or service.
 - KDC with: in-memory, Mavibot(MVCC BTree) or JSON backends to store data (principals and keys).
-- Preauth mechanism using JWT or OTP mechanism to request TGT and Service-Tickets.
-- SASL support and more.
+- Preauth mechanism using JWT or PKI mechanism to request TGT and Service-Tickets.
+
+**PKI (Public Key Infrastructure) Solution (not defined yet)** 
+- Needs supports to PKINIT EKUs keyPurposeKdc 1.3.6.1.5.2.3.5, keyPurposeClientAuth 1.3.6.1.5.2.3.4 and [some unusual fields for client certs and KDC cert](https://web.mit.edu/Kerberos/krb5-1.12/doc/admin/pkinit.html). Will be used to user authenticate with X.509 certificates (no need of keytabs or passwords inputs)
+- Needs support to EKU Client Authentication 1.3.6.1.5.5.7.3.2. Clients will be able to create signed JTWs that can be validated in Ory Hydra (via OAuth2: **Client Credentials Flow**)
 
 **kerby-instruments**: https://github.com/mesb/kerby-instruments
 - Java spring boot REST API for Apache Kerby.
 - Remote Kerberos administration, management, instrumentation, metrics and telemetry.
-- Fundamental key operations in kerberos authentication delegation. [Apache Kerby](https://directory.apache.org/kerby/) doesn't have features of [Kerberos Constrained Delegation, like Active Directory has](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview). We need use the alternative mechanisms of kerby and his API to do the delegation properly.
+- user principals vault: user principals key-pairs (gnupg) / keyPurposeClientAuth + Client Authentication (user principals) x.509 certs (and private keys)
+- Java kerby realm constrained delegation with policy business (only for Java service principals), based in users JWTs
 
 **Ory ecosystem:**
 >
 **Ory Hydra**: Golang OAuth2 and OpenID Connect provider for token-based authentication.
-- Alternative ways to get Kerberos tickets (via JWT or OTP).
 - OAuth2/OpenID Flows (MinIO and Spring for Apache Kafka REST Web Service).
 >
 **Ory Kratos**: Golang Identity and User Management system with self-service flows.
@@ -61,6 +65,28 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 **Ory Keto**: Golang Fine-grained authorization server with relationship-based access control.
 - Fine-grained authorization for the Spring for Apache Kafka REST Web Service.
 - Fine-grained authorization for the S3 buckets (MinIO).
+
+### Kerberos delegation
+
+The RFC 4120: [The Kerberos Network Authentication Service (V5)](https://datatracker.ietf.org/doc/html/rfc4120), in the sections 2.5 to 2.8, defines the delegation aspects of kerberos: *When a backend service is doing authentication (in a second backend service) on behalf of the user connected in the frontend.*
+
+The bellow Ticket tags can control the delegation on kerberos realm and are only interpreted by the ticket-granting-service and authentication-service (TGS and AS are part of KDC). 
+
+- "**PROXIABLE**" and "**PROXY**" tags are used to control the requests of the service-tickets (only), from service principals on-behalf authenticated users principals. This tag can be defined by the user principal in the initial authentication (or any time when getting the TGT or service-tickets).
+- "**FORWARDABLE**" flag control the requests of TGT (ticket-grant-tickets) from service principals on-behalf authenticated users principals. This tag can be defined by the user principal in the initial authentication (or any time when getting the TGT or service-tickets).
+- "**OK-AS-DELEGATE**" tag is defined when a service principal is getting his TGT (from AS). Will help the realm policy delegation decisions.
+
+Expected behavior using *FORWARDABLE* ticket tag:
+![](/docs/krb_delegation.png)
+*image source: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-sfu/1fb9caca-449f-4183-8f7a-1a5fc7e7290a*
+
+Microsoft extended the Kerberos delegation capabilities with a [Constrained Delegation](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview) Protocol known as [Service for User (S4U)](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-sfu/3bff5864-8135-400e-bdd9-33b552051d94)
+
+The book-looker-realm will face the Kerberos delegation as follow:
+
+- **Non-Java servers (service principals)**: Default Kerberos V5 behavior, delegation ticket tags (and expect that kerby KDC can handle properly).
+
+- **Java servers (service principals)**: kerby-instruments alternative *kerby realm constrained delegation* with *policy business*. Via REST API and using user-principals JWTs.
 
 ### Positive points about Kerberos
 
