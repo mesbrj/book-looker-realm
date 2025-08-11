@@ -26,7 +26,9 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 **[JavaFX](https://openjfx.io/)** Mobile and Desktop Client UI:
 - User authentication with Kerberos with SSO (Single Sign-On) support.
 - Client (GUI FrontEnd) for the Spring for Apache Kafka REST Web Service.
-- JavaFX app in internet only (80/443) locations: Alternative ways to get Kerberos tickets via JWT or OTP mechanisms.
+- JavaFX app in internet only (80/443) locations:
+    - Authorization Code Flow (with mTLS or PKCE depending the X.509 user cert local availability in the client)
+    - Client Credentials flow if we consider a mobile/desktop-server authentication (and the client cert is always available localy in the client).
 
 **Golang Terminal User-Interface:**
 - User authentication with Kerberos with SSO (Single Sign-On) support.
@@ -59,11 +61,12 @@ Kerberos and OAuth2 Flows usage / KDC cert and key.
 **Ory ecosystem:**
 >
 **Ory Hydra**: Golang OAuth2 and OpenID Connect provider for token-based authentication.
-- kerby-instruments: Client Credentials and On-Behalf-Of OAuth2 flows.
+- kerby-instruments: Client Credentials.
+- internet-only clients: Authorization Code Flow (with mTLS or PKCE depending the X.509 user cert local availability in the client). Maybe a Client Credentials flow if we consider a mobile/desktop-server authentication (and the client cert is always available localy in the client).
 - OAuth2/OpenID Flows (MinIO and Spring for Apache Kafka REST Web Service).
 >
-**Ory Oauthkeeper**: Golang OAuth2 and OpenID Connect provider for token-based authentication.
-- kerby-instruments: Client Credentials and On-Behalf-Of OAuth2 flows. OAuth2 Token introspection for JWT mutations (defining correct identity claims).
+**Ory Oathkeeper**: Golang Identity & Access Proxy / API (IAP) and Access Control Decision API.
+- kerby-instruments: Client Credentials Flow. JWT mutations (defining correct identity claims).
 >
 **Ory Kratos**: Golang Identity and User Management system with self-service flows.
 - Principals and keys (users and services) management in the Kerby realm.
@@ -90,19 +93,11 @@ Microsoft extended the Kerberos delegation capabilities with a [Constrained Dele
 
 The book-looker-realm will face the Kerberos delegation as follow:
 
-- **Non-Java servers (service principals) with KDC reachability**: Default Kerberos V5 behavior via delegation ticket tags (and expect that kerby KDC can handle properly).
+- **Non-Java servers (service principals)**: Default Kerberos V5 behavior via delegation ticket tags (and expect that kerby KDC can handle properly).
 
-- **Java servers (service principals) with KDC reachability and any other service principal (any language) in Internet only locations**: kerby-instruments *kerby realm alternative constrained delegation*, using user-principals signed JWTs.
+- **Java servers (service principals)**: kerby-instruments *kerby realm alternative constrained delegation*, using user-principals signed JWTs.
 
 ### kerby realm alternative constrained delegation:
-
-#### Internet only locations
-
-Will follow the OAuth2 Client Credentials and On-Behalf-Of flows. Using the kerby-instruments (realm) user certificates to sign JWTs. With JWT mutations (by Ory) to define the correct claims.
-![](docs/OAuth2-On-Behalf-Of.png)
-*image source: https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow*
-
-#### Realm KDC reachability
 
 The kerby-instruments HTTPS (Kerberos authenticated) endpoints for delegation services, needs to be used for service principals (servers) needing to authenticate on-behalf of users.
 
