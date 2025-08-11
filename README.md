@@ -56,6 +56,7 @@ Kerberos and OAuth2 Flows usage / KDC cert and key.
 >**Self-signed private PKI embedded on Kerby-instruments:** 
 - Needs supports to PKINIT EKUs keyPurposeKdc 1.3.6.1.5.2.3.5, keyPurposeClientAuth 1.3.6.1.5.2.3.4 and [some unusual fields for client certs and KDC cert](https://web.mit.edu/Kerberos/krb5-1.12/doc/admin/pkinit.html). Will be used to user authenticate with X.509 certificates (no need of keytabs or passwords inputs)
 - Needs support to EKU Client Authentication 1.3.6.1.5.5.7.3.2. Clients will be able to create signed JTWs that can be validated in Ory Hydra
+- Needs support JSON Web Signature (JWS) [RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515). Attentions in ["x5u" (X.509 URL) Header Parameter](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.5) and ["x5c" (X.509 Certificate Chain) Header Parameter](https://datatracker.ietf.org/doc/html/rfc7515#section-4.1.6)
 - Ory ecosystem needs to be configured to trust the self-signed PKI.
 
 **Ory ecosystem:**
