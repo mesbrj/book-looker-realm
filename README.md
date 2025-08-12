@@ -94,7 +94,7 @@ Microsoft extended the Kerberos delegation capabilities with a [Constrained Dele
 
 The book-looker-realm will face the Kerberos delegation as follow:
 
-- **Non-Java servers (service principals)**: Default Kerberos V5 behavior via delegation ticket tags (and expect that kerby KDC can handle properly).
+- **Non-Java servers (service principals)**: Default Kerberos V5 behavior via delegation ticket tags. [Kerby KDC supports](https://github.com/apache/directory-kerby/blob/trunk/kerby-kerb/kerb-server/src/main/java/org/apache/kerby/kerberos/kerb/server/KdcConfigKey.java): PROXIABLE_ALLOWED and FORWARDABLE_ALLOWED. Unconstrained delegation (without OK-AS-DELEGATE flag) in a *"FORWARDABLE level"*.
 
 - **Java servers (service principals)**: kerby-instruments *kerby realm alternative constrained delegation*, using user-principals signed JWTs.
 
