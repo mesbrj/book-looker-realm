@@ -320,16 +320,6 @@ The deployment includes dedicated PKI services:
    - Responds to OCSP requests
    - Integrated with CA database
 
-### Testing PKI Infrastructure
-
-```bash
-# Quick PKI service test
-make ory-test-pki
-
-# Comprehensive PKI infrastructure test
-make ory-test-pki-full
-```
-
 ### Certificate Management Commands
 
 ```bash
