@@ -40,7 +40,18 @@
         "x509_cert_serial": {
           "type": "string",
           "title": "X.509 Certificate Serial",
-          "description": "Serial number of the user's client authentication certificate"
+          "description": "Serial number of the user's client authentication certificate issued by book-looker-realm CA"
+        },
+        "x509_cert_fingerprint": {
+          "type": "string", 
+          "title": "X.509 Certificate Fingerprint",
+          "description": "SHA256 fingerprint of the user's client certificate"
+        },
+        "ca_trusted": {
+          "type": "boolean",
+          "title": "CA Trust Verified",
+          "description": "Whether the certificate is verified against book-looker-realm CA",
+          "default": false
         },
         "roles": {
           "type": "array",

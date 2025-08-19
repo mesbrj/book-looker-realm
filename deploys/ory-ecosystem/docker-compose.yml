@@ -66,6 +66,10 @@ services:
       URLS_SELF_ISSUER: http://localhost:4444
       URLS_CONSENT: http://localhost:3000/consent
       URLS_LOGIN: http://localhost:3000/login
+      # CA trust environment variables for Go HTTP client
+      SSL_CERT_FILE: /etc/certs/ca.crt
+      SSL_CERT_DIR: /etc/certs
+      CURL_CA_BUNDLE: /etc/certs/ca.crt
     networks:
       - ory-network
       - book-looker-realm
@@ -99,9 +103,15 @@ services:
     volumes:
       - ./config/kratos:/etc/config/kratos:ro
       - ./config/kratos/identity.schema.json:/etc/config/kratos/identity.schema.json:ro
+      - ./config/kratos/hooks:/etc/config/kratos/hooks:ro
+      - ./certs:/etc/certs:ro  # Mount CA certificate for SSL trust
     environment:
       DSN: postgres://ory:ory-secret@postgres:5432/kratos?sslmode=disable
       LOG_LEVEL: trace
+      # CA trust environment variables for Go HTTP client
+      SSL_CERT_FILE: /etc/certs/ca.crt
+      SSL_CERT_DIR: /etc/certs
+      CURL_CA_BUNDLE: /etc/certs/ca.crt
     networks:
       - ory-network
       - book-looker-realm
@@ -135,8 +145,13 @@ services:
     command: serve -c /etc/config/keto/keto.yml
     volumes:
       - ./config/keto:/etc/config/keto:ro
+      - ./certs:/etc/certs:ro  # Mount CA certificate for SSL trust
     environment:
       DSN: postgres://ory:ory-secret@postgres:5432/keto?sslmode=disable
+      # CA trust environment variables for Go HTTP client
+      SSL_CERT_FILE: /etc/certs/ca.crt
+      SSL_CERT_DIR: /etc/certs
+      CURL_CA_BUNDLE: /etc/certs/ca.crt
     networks:
       - ory-network
       - book-looker-realm
@@ -158,6 +173,10 @@ services:
       - ./certs:/etc/certs:ro  # Your self-signed PKI certificates
     environment:
       LOG_LEVEL: debug
+      # CA trust environment variables for Go HTTP client
+      SSL_CERT_FILE: /etc/certs/ca.crt
+      SSL_CERT_DIR: /etc/certs
+      CURL_CA_BUNDLE: /etc/certs/ca.crt
     networks:
       - ory-network
       - book-looker-realm
@@ -177,6 +196,100 @@ services:
       - "1025:1025" # SMTP
     networks:
       - ory-network
+
+  # Kerby-instruments - Kerberos Principal Management
+  # This service is in development - placeholder configuration
+  kerby-instruments:
+    # image: book-looker-realm/kerby-instruments:latest  # When available
+    image: nginx:alpine  # Temporary placeholder
+    container_name: kerby-instruments
+    ports:
+      - "8443:443"   # HTTPS endpoint
+      - "8080:80"    # HTTP endpoint (development)
+    environment:
+      # Kerberos realm configuration
+      KRB_REALM: "BOOK-LOOKER.REALM"
+      KRB_KDC_HOST: "localhost"
+      KRB_KDC_PORT: "88"
+      
+      # Database configuration (when implemented)
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "kerby_instruments"
+      DB_USER: "ory"
+      DB_PASSWORD: "ory-secret"
+      
+      # Integration tokens
+      KRATOS_WEBHOOK_TOKEN: "kerby-instruments-service-token"
+      HYDRA_CLIENT_ID: "kerby-instruments-client"
+      
+      # Certificate management
+      PKI_ROOT_CA_PATH: "/app/certs/ca"
+      PKI_INTERMEDIATE_CA_PATH: "/app/certs/intermediate"
+      X509_CERT_VALIDITY_DAYS: "365"
+    volumes:
+      # Certificate storage
+      - ./certs:/app/certs:rw
+      # Configuration when available
+      # - ./config/kerby-instruments:/app/config:ro
+    networks:
+      - ory-network
+      - book-looker-realm
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    # When implemented, health check will be:
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://localhost:8443/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+  # PKI Services for Certificate Management
+  pki-services:
+    image: nginx:alpine
+    container_name: pki-services
+    ports:
+      - "8080:80"    # CRL and OCSP endpoints
+    environment:
+      - NGINX_PORT=80
+    volumes:
+      - ./certs:/var/www/html/certs:ro
+      - ./pki-nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ory-network
+      - book-looker-realm
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Simple OCSP Responder (for development/testing)
+  ocsp-responder:
+    image: alpine:latest
+    container_name: ocsp-responder
+    ports:
+      - "8081:8081"  # OCSP responder port
+    command: |
+      sh -c "
+        apk add --no-cache openssl socat &&
+        cd /app/certs &&
+        echo 'Starting OCSP Responder on port 8081...' &&
+        while true; do
+          echo 'OCSP Responder ready' | socat TCP-LISTEN:8081,fork,reuseaddr SYSTEM:'openssl ocsp -port 8081 -text -CA ca.crt -index ca/index.txt -rkey ocsp/ocsp.key -rsigner ocsp/ocsp.crt -nrequest 1'
+        done
+      "
+    volumes:
+      - ./certs:/app/certs:ro
+    networks:
+      - ory-network
+      - book-looker-realm
+    depends_on:
+      - pki-services
+    restart: unless-stopped
 
   # Jaeger for distributed tracing
   jaeger:

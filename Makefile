@@ -65,6 +65,25 @@ ory-status:
 	@echo "Oathkeeper (4455):"
 	@curl -s http://localhost:4455/health/ready && echo "✅ Ready" || echo "❌ Not Ready"
 
+ory-test-ca:
+	@echo "🧪 Testing CA trust configuration..."
+	cd deploys/ory-ecosystem && ./test-ca-trust.sh
+
+ory-test-pki:
+	@echo "🔐 Testing Enhanced PKI services (CRL/OCSP)..."
+	@echo "PKI Services Health (8080):"
+	@curl -s http://localhost:8080/health && echo "✅ PKI Services Ready" || echo "❌ PKI Services Not Ready"
+	@echo "CA Certificate Distribution:"
+	@curl -s -I http://localhost:8080/ca/ca.crt | head -1 && echo "✅ CA cert accessible" || echo "❌ CA cert not accessible"
+	@echo "CRL Distribution Point:"
+	@curl -s -I http://localhost:8080/crl/ca.crl | head -1 && echo "✅ CRL accessible" || echo "❌ CRL not accessible"
+	@echo "OCSP Responder:"
+	@curl -s -I http://localhost:8080/ocsp | head -1 && echo "✅ OCSP accessible" || echo "❌ OCSP not accessible"
+
+ory-test-pki-full:
+	@echo "🔐 Running comprehensive Enhanced PKI tests..."
+	cd deploys/ory-ecosystem && ./test-enhanced-pki.sh
+
 
 # Help
 help:
@@ -84,6 +103,9 @@ help:
 	@echo "  ory-start      - Start Ory services (Hydra, Kratos, Keto, Oathkeeper)"
 	@echo "  ory-stop       - Stop Ory ecosystem services"
 	@echo "  ory-status     - Check health status of all Ory services"
+	@echo "  ory-test-ca    - Test CA trust configuration and certificate validation"
+	@echo "  ory-test-pki   - Test Enhanced PKI services (CRL/OCSP endpoints)"
+	@echo "  ory-test-pki-full - Run comprehensive Enhanced PKI infrastructure tests"
 	@echo ""
 	@echo "📖 Documentation:"
 	@echo "  • Project overview: README.md"

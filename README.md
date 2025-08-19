@@ -47,7 +47,7 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 - Preauth mechanism using JWT or PKI mechanism to request TGT and Service-Tickets.
 
 **kerby-instruments**: https://github.com/mesb/kerby-instruments
-- Java spring boot REST API for Apache Kerby, it never will be published in the internet.
+- Java spring boot REST API for Apache Kerby.
 - Remote Kerberos administration, management, instrumentation, metrics and telemetry.
 - user principals gnupg vault: user principals key-pairs (gnupg) - Encryption for user data (users are able to decide if the private key will be stored here or not).
 - realm vault: kerby-instruments svc key pairs (gnupg) / keyPurposeClientAuth/Client Authentication (user principals) x.509 certs (and private keys) only for 

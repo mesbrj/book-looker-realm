@@ -12,6 +12,8 @@ deploys/ory-ecosystem/certs/*.key
 deploys/ory-ecosystem/certs/*.crt
 deploys/ory-ecosystem/certs/*.csr
 deploys/ory-ecosystem/certs/*.srl
+deploys/ory-ecosystem/.kerby-instruments-token
+deploys/ory-ecosystem/kerby-instruments-config.env
 
 # Docker volumes and data
 postgres-data/

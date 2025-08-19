@@ -277,6 +277,103 @@ curl http://localhost:4455/health/ready  # Oathkeeper
    - Verify Keto relationships are properly set up
    - Check Oathkeeper access rules match your API paths
 
+## Enhanced PKI Infrastructure (CRL/OCSP)
+
+The Ory ecosystem now includes an enhanced PKI infrastructure with Certificate Revocation Lists (CRLs) and Online Certificate Status Protocol (OCSP) support for real-time certificate validation.
+
+### PKI Architecture
+
+```
+                    ┌─────────────────┐
+                    │   Root CA       │
+                    │ book-looker-ca  │
+                    └─────────┬───────┘
+                              │
+            ┌─────────────────┼─────────────────┐
+            │                 │                 │
+     ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+     │   Server    │  │   Client    │  │    OCSP     │
+     │    Cert     │  │    Cert     │  │ Responder   │
+     │ (localhost) │  │(book-looker │  │    Cert     │
+     └─────────────┘  │  -client)   │  └─────────────┘
+                      └─────────────┘
+```
+
+### Certificate Extensions
+
+All certificates include:
+- **CRL Distribution Points**: `http://localhost:8080/crl/ca.crl`
+- **OCSP Endpoints**: `http://localhost:8080/ocsp`
+- **CA Certificate Distribution**: `http://localhost:8080/ca/ca.crt`
+
+### PKI Services
+
+The deployment includes dedicated PKI services:
+
+1. **PKI HTTP Service** (port 8080):
+   - Serves CRL files
+   - Distributes CA certificates
+   - Provides health checks
+
+2. **OCSP Responder** (port 8081):
+   - Real-time certificate status validation
+   - Responds to OCSP requests
+   - Integrated with CA database
+
+### Testing PKI Infrastructure
+
+```bash
+# Quick PKI service test
+make ory-test-pki
+
+# Comprehensive PKI infrastructure test
+make ory-test-pki-full
+```
+
+### Certificate Management Commands
+
+```bash
+# Generate initial certificates with CRL/OCSP support
+cd deploys/ory-ecosystem && ./setup.sh
+
+# Test certificate chain validation
+openssl verify -CAfile certs/ca.crt certs/server.crt
+
+# Check OCSP response
+openssl ocsp -issuer certs/ca.crt -cert certs/server.crt \
+  -url http://localhost:8080/ocsp -noverify
+
+# View certificate extensions
+openssl x509 -in certs/server.crt -text -noout | grep -A5 "Authority Information Access"
+```
+
+### PKI Directory Structure
+
+```
+certs/
+├── ca/                 # CA database files
+│   ├── index.txt       # Certificate database
+│   ├── serial          # Serial number tracking
+│   └── crlnumber       # CRL serial numbers
+├── crl/                # Certificate Revocation Lists
+│   └── ca.crl          # Current CRL
+├── ocsp/               # OCSP responder certificates
+│   └── ocsp.crt        # OCSP signing certificate
+├── issued/             # Issued certificates (CA managed)
+├── private/            # Private keys (secure)
+├── newcerts/           # Newly issued certificates
+├── ca.crt              # Root CA certificate
+├── server.crt          # Server certificate (with CRL/OCSP)
+└── client.crt          # Client certificate
+```
+
+### Integration with Ory Services
+
+All Ory services are configured to trust the CA and can validate certificates using:
+- CRL checking for revoked certificates
+- OCSP validation for real-time status
+- Certificate chain validation
+
 ## Production Considerations
 
 1. **Secrets Management:**
@@ -291,18 +388,27 @@ curl http://localhost:4455/health/ready  # Oathkeeper
    - Use proper SSL certificates (not self-signed)
    - Configure HTTPS for all endpoints
 
-4. **Monitoring:**
+4. **PKI Management:**
+   - Deploy OCSP responder in high availability setup
+   - Configure CRL update scheduling
+   - Implement certificate lifecycle management
+   - Monitor certificate expiration dates
+
+5. **Monitoring:**
    - Set up proper logging and monitoring
    - Configure alerts for authentication failures
+   - Monitor PKI service health
 
-5. **Performance:**
+6. **Performance:**
    - Consider token caching strategies
    - Optimize database queries for permission checks
+   - Cache CRL and OCSP responses appropriately
 
 ## Next Steps
 
 1. Deploy kerby-instruments service
 2. Configure your Spring Boot application
 3. Implement client applications with OAuth2 flows
-4. Set up production-ready certificates
+4. Set up production-ready certificates with proper CA
 5. Configure monitoring and alerting
+6. Implement certificate lifecycle management
