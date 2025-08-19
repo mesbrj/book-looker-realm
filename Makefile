@@ -40,6 +40,11 @@ ory-setup:
 	@echo "🚀 Setting up Ory ecosystem (Hydra, Kratos, Keto, Oathkeeper)..."
 	cd deploys/ory-ecosystem && ./setup.sh
 
+ory-clean:
+	@echo "🧹 Cleaning Ory ecosystem (removing containers, volumes, and certificates)..."
+	cd deploys/ory-ecosystem && docker-compose down -v --remove-orphans
+	cd deploys/ory-ecosystem && rm -rf certs/ .kerby-instruments-token kerby-instruments-config.env setup-old.sh
+
 ory-start:
 	@echo "🐳 Starting Ory ecosystem services..."
 	cd deploys/ory-ecosystem && docker-compose up -d
@@ -81,6 +86,7 @@ help:
 	@echo ""
 	@echo "🔐 Ory Ecosystem (IAM/CIAM):"
 	@echo "  ory-setup      - Setup complete Ory ecosystem with certificates and clients"
+	@echo "  ory-clean      - Clean Ory ecosystem (remove containers, volumes, certificates)"
 	@echo "  ory-start      - Start Ory services (Hydra, Kratos, Keto, Oathkeeper)"
 	@echo "  ory-stop       - Stop Ory ecosystem services"
 	@echo "  ory-status     - Check health status of all Ory services"
