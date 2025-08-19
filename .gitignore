@@ -7,6 +7,23 @@ samples/tika_output_tests/*.xml
 # Work files
 *.drawio.bkp
 
+# Ory ecosystem artifacts
+deploys/ory-ecosystem/certs/*.key
+deploys/ory-ecosystem/certs/*.crt
+deploys/ory-ecosystem/certs/*.csr
+deploys/ory-ecosystem/certs/*.srl
+
+# Docker volumes and data
+postgres-data/
+hydra-secrets/
+kratos-secrets/
+keto-data/
+
+# Build artifacts
+producers/go_cli/producer
+consumer/consumer
+*.exe
+
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #

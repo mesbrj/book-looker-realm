@@ -1,0 +1,110 @@
+version: v1.0.0
+
+# Kratos Configuration for book-looker-realm
+serve:
+  public:
+    base_url: http://localhost:4433/
+    cors:
+      enabled: true
+      allowed_origins:
+        - "*"
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "PATCH"
+        - "DELETE"
+        - "HEAD"
+        - "OPTIONS"
+      allowed_headers:
+        - "*"
+      exposed_headers:
+        - "*"
+  admin:
+    base_url: http://localhost:4434/
+
+dsn: postgres://ory:ory-secret@postgres:5432/kratos?sslmode=disable
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///etc/config/kratos/identity.schema.json
+
+# Configure for Kerberos principal management
+selfservice:
+  default_browser_return_url: http://localhost:3000/
+  allowed_return_urls:
+    - http://localhost:3000
+    - http://localhost:4455  # Oathkeeper proxy
+
+  flows:
+    error:
+      ui_url: http://localhost:3000/error
+
+    settings:
+      ui_url: http://localhost:3000/settings
+      privileged_session_max_age: 15m
+      required_aal: highest_available
+
+    recovery:
+      enabled: true
+      ui_url: http://localhost:3000/recovery
+      use: code
+
+    verification:
+      enabled: true
+      ui_url: http://localhost:3000/verification
+      use: code
+      after:
+        default_browser_return_url: http://localhost:3000/
+
+    logout:
+      after:
+        default_browser_return_url: http://localhost:3000/login
+
+    login:
+      ui_url: http://localhost:3000/login
+      lifespan: 10m
+      after:
+        default_browser_return_url: http://localhost:3000/
+
+    registration:
+      enabled: true
+      ui_url: http://localhost:3000/registration
+      lifespan: 10m
+      after:
+        default_browser_return_url: http://localhost:3000/
+
+log:
+  level: debug
+  format: json
+
+secrets:
+  cookie:
+    - your-cookie-secret-32-chars-long
+  cipher:
+    - your-cipher-secret-32-chars-long
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+
+session:
+  lifespan: 24h
+  cookie:
+    domain: localhost
+    name: ory_kratos_session
+    same_site: Lax
+
+oauth2_provider:
+  url: http://hydra:4445
+  override_return_to: false

@@ -1,0 +1,35 @@
+version: v0.11.1
+
+# Keto Configuration for book-looker-realm fine-grained authorization
+serve:
+  read:
+    port: 4466
+    host: 0.0.0.0
+    cors:
+      enabled: true
+      allowed_origins:
+        - "*"
+  write:
+    port: 4467
+    host: 0.0.0.0
+    cors:
+      enabled: true
+      allowed_origins:
+        - "*"
+  opl_syntax:
+    port: 4468
+    host: 0.0.0.0
+
+dsn: postgres://ory:ory-secret@postgres:5432/keto?sslmode=disable
+
+# Permission namespaces for book-looker-realm
+namespaces:
+  - name: documents
+  - name: catalogs  
+  - name: s3_buckets
+  - name: kafka_topics
+  - name: kerberos_principals
+
+log:
+  level: debug
+  format: json

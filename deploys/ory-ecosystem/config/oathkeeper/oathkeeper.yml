@@ -1,0 +1,122 @@
+version: v0.40.6
+
+# Oathkeeper Configuration for book-looker-realm
+serve:
+  proxy:
+    port: 4455
+    host: 0.0.0.0
+    cors:
+      enabled: true
+      allowed_origins:
+        - "*"
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "PATCH"
+        - "DELETE"
+        - "HEAD"
+      allowed_headers:
+        - "*"
+      exposed_headers:
+        - "*"
+  api:
+    port: 4456
+    host: 0.0.0.0
+
+log:
+  level: debug
+  format: json
+
+access_rules:
+  matching_strategy: glob
+  repositories:
+    - file:///etc/config/oathkeeper/access-rules.yml
+
+errors:
+  fallback:
+    - json
+  handlers:
+    redirect:
+      enabled: true
+      config:
+        to: http://localhost:3000/login
+        when:
+          - error:
+              - unauthorized
+              - forbidden
+            request:
+              header:
+                accept:
+                  - text/html
+    json:
+      enabled: true
+      config:
+        verbose: true
+
+# Authenticators
+authenticators:
+  anonymous:
+    enabled: true
+    config:
+      subject: anonymous
+
+  oauth2_introspection:
+    enabled: true
+    config:
+      introspection_url: http://hydra:4445/admin/oauth2/introspect
+      scope_strategy: hierarchic
+      pre_authorization:
+        enabled: true
+        client_id: oathkeeper
+        client_secret: oathkeeper-secret
+        scope: 
+          - introspect
+        token_url: http://hydra:4444/oauth2/token
+
+  jwt:
+    enabled: true
+    config:
+      # Will be configured later when kerby-instruments is deployed
+      jwks_urls: []
+      trusted_issuers: []
+
+# Authorizers
+authorizers:
+  allow:
+    enabled: true
+
+  deny:
+    enabled: true
+
+  keto_engine_acp_ory:
+    enabled: true
+    config:
+      base_url: http://keto:4466
+      required_action: ""
+      required_resource: ""
+      subject: ""
+
+# Mutators
+mutators:
+  noop:
+    enabled: true
+
+  header:
+    enabled: true
+    config:
+      headers:
+        X-User: "{{ print .Subject }}"
+        X-Kerberos-Principal: "{{ print .Extra.kerberos_principal }}"
+        X-User-Roles: "{{ print .Extra.roles }}"
+
+  id_token:
+    enabled: true
+    config:
+      issuer_url: http://hydra:4444
+      jwks_url: http://hydra:4444/.well-known/jwks.json
+      ttl: 1h
+      claims: |
+        {
+          "session": {{ .Extra | toJson }}
+        }

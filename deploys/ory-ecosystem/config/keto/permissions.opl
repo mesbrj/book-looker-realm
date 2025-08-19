@@ -1,0 +1,94 @@
+# OPL Permission Model for book-looker-realm
+# This defines the permission relationships for your Kerberos-enabled document processing system
+
+# Document namespace - handles PDF files and their metadata
+class Document {
+  # Relations
+  relation owner: User
+  relation editor: User
+  relation viewer: User
+  relation s3_bucket: S3Bucket
+  relation catalog_entry: CatalogEntry
+  
+  # Permissions
+  permission read = viewer + editor + owner
+  permission write = editor + owner
+  permission delete = owner
+  permission upload_to_s3 = owner + editor
+  permission extract_metadata = viewer + editor + owner
+}
+
+# Catalog namespace - manages document catalogs and search
+class CatalogEntry {
+  relation owner: User
+  relation maintainer: User
+  relation reader: User
+  relation document: Document
+  
+  permission read = reader + maintainer + owner
+  permission update = maintainer + owner
+  permission delete = owner
+  permission search = reader + maintainer + owner
+}
+
+# S3 Bucket namespace - MinIO storage permissions
+class S3Bucket {
+  relation owner: User
+  relation admin: User
+  relation uploader: User
+  relation reader: User
+  relation kerberos_realm: KerberosRealm
+  
+  permission read = reader + uploader + admin + owner
+  permission write = uploader + admin + owner
+  permission delete = admin + owner
+  permission list = reader + uploader + admin + owner
+  permission admin_access = admin + owner
+}
+
+# Kafka Topic namespace - for message processing
+class KafkaTopic {
+  relation owner: User
+  relation producer: User
+  relation consumer: User
+  relation kerberos_realm: KerberosRealm
+  
+  permission produce = producer + owner
+  permission consume = consumer + owner
+  permission admin = owner
+}
+
+# Kerberos Principal namespace - identity management
+class KerberosPrincipal {
+  relation owner: User
+  relation realm_admin: User
+  relation service_principal: User
+  relation kerberos_realm: KerberosRealm
+  
+  permission authenticate = owner
+  permission delegate = owner + service_principal
+  permission manage = realm_admin + owner
+  permission issue_certificate = realm_admin
+  permission create_jwt = owner + service_principal
+}
+
+# Kerberos Realm namespace - realm-wide permissions
+class KerberosRealm {
+  relation admin: User
+  relation service: User
+  relation user: User
+  
+  permission admin_access = admin
+  permission create_principal = admin
+  permission issue_tickets = admin + service
+  permission delegate_credentials = service
+}
+
+# User class for identity
+class User {
+  # Users can have roles within the realm
+  relation kerberos_realm: KerberosRealm
+  relation role_admin: KerberosRealm#admin
+  relation role_service: KerberosRealm#service
+  relation role_user: KerberosRealm#user
+}
