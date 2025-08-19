@@ -42,7 +42,7 @@ Text and metadata (file contents and archive), detection and extraction pipeline
 
 **Ory ecosystem and Kerberos realm**
 >
-**kerby-instruments**: https://github.com/mesb/kerby-instruments
+**kerby-instruments**: https://github.com/mesbrj/kerby-instruments
 - Kerberos realm and principals management and integration with Ory ecosystem.
 - X.509 user certificate management and self-signed PKI.
 - Preauth mechanisms using JWT or PKI to request TGT and Service-Tickets.
