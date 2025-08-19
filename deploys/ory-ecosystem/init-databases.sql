@@ -1,9 +1,0 @@
--- Create multiple databases
-CREATE DATABASE hydra;
-CREATE DATABASE kratos;
-CREATE DATABASE keto;
-
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE hydra TO ory;
-GRANT ALL PRIVILEGES ON DATABASE kratos TO ory;
-GRANT ALL PRIVILEGES ON DATABASE keto TO ory;
