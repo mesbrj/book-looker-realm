@@ -1,0 +1,94 @@
+{
+  "$id": "https://schemas.ory.sh/presets/kratos/identity.email.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Book Looker Realm Identity",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "verification": {
+              "via": "email"
+            },
+            "recovery": {
+              "via": "email"
+            }
+          }
+        },
+        "kerberos_principal": {
+          "type": "string",
+          "title": "Kerberos Principal",
+          "description": "The Kerberos principal name for this user",
+          "pattern": "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$"
+        },
+        "realm": {
+          "type": "string",
+          "title": "Kerberos Realm",
+          "description": "The Kerberos realm for this principal",
+          "default": "BOOK-LOOKER.REALM"
+        },
+        "x509_cert_serial": {
+          "type": "string",
+          "title": "X.509 Certificate Serial",
+          "description": "Serial number of the user's client authentication certificate issued by book-looker-realm CA"
+        },
+        "x509_cert_fingerprint": {
+          "type": "string", 
+          "title": "X.509 Certificate Fingerprint",
+          "description": "SHA256 fingerprint of the user's client certificate"
+        },
+        "ca_trusted": {
+          "type": "boolean",
+          "title": "CA Trust Verified",
+          "description": "Whether the certificate is verified against book-looker-realm CA",
+          "default": false
+        },
+        "roles": {
+          "type": "array",
+          "title": "User Roles",
+          "items": {
+            "type": "string",
+            "enum": ["user", "admin", "service", "catalog_manager", "document_uploader"]
+          },
+          "default": ["user"]
+        },
+        "permissions": {
+          "type": "array",
+          "title": "User Permissions",
+          "items": {
+            "type": "object",
+            "properties": {
+              "resource": {
+                "type": "string",
+                "description": "Resource type (e.g., document, catalog, s3-bucket)"
+              },
+              "action": {
+                "type": "string",
+                "description": "Action (e.g., read, write, delete, upload)"
+              },
+              "scope": {
+                "type": "string",
+                "description": "Scope or specific resource identifier"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "email",
+        "kerberos_principal"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
