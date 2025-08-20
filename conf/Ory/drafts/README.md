@@ -75,7 +75,6 @@ sequenceDiagram
     participant C as Client App
     participant KI as kerby-instruments  
     participant H as Hydra
-    participant O as Oathkeeper
     participant S as Spring Service
 
     C->>KI: Request x.509 certificate
@@ -83,10 +82,9 @@ sequenceDiagram
     C->>C: Create signed JWT with certificate
     C->>H: Exchange JWT for OAuth2 token
     H->>C: Access token
-    C->>O: API request with Bearer token
-    O->>H: Validate token
-    O->>O: Add identity headers
-    O->>S: Forward request with user context
+    C->>S: API request with Bearer token
+    S->>H: Token introspection
+
 ```
 
 ### Key Integration Points
